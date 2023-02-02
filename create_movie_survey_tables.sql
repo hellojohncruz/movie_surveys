@@ -18,7 +18,7 @@ ALTER TABLE IF EXISTS public.surveys
     OWNER to postgres;
 
 -- Access CSV from path
-copy surveys from '/Users/Shared/movie_survey.csv' delimiter ',' HEADER csv;
+copy surveys from 'CSV survey filepath' delimiter ',' HEADER csv;
 
 -- Add new column for each user who submitted a survey
 ALTER TABLE public.surveys

@@ -1,5 +1,5 @@
 ---
-title: "Sample on Movie Ratings"
+title: "Movie Ratings Sample Data"
 author: "John Cruz"
 date: "2023-02-02"
 output: pdf_document
@@ -14,22 +14,35 @@ knitr::opts_chunk$set(echo = TRUE)
 
 I will be collecting movie ratings through an online survey on a scale of 1 to 5. 
 
-The overall steps of this project is to do the following:
+The overall steps of this project is the following:
 
 1. Collect survey data
 2. Create a database to store this information
-3. Able to query the data into R
+3. Ability to query the data into R
 4. Analyze some descriptive measures.
 
 ---
 
 # Collecting Survey Data
 
-The survey was conducted using a Google Forms and named *Spoiled Corn*. This survey will collect ratings of six recent popular movies on a scale of 1 to 5, 1 being the lowest. If a person did not watch this movie, it will be categorized with an option of N/A.
+The survey was conducted using a Google Forms named *Spoiled Corn*. This survey will collect ratings of six recent popular movies on a scale of 1 to 5, 1 being the lowest. If a person did not watch this movie, it will be categorized with an option of N/A. Once data has been collected, I exported the data via CSV, so that it can be imported into our PostgreSQL database. 
 
 [Online Survey](https://forms.gle/Jf8fvruorDacr69j9)
 
-# Building our Database
+---
+
+# Building the Database
+
+The database used was PostgreSQL for no particular reason but to learn how to use another database option outside of my previous ones such as SQL Server, duckDB and Google Cloud Storage.
+
+Using PostgreSQL within pgAdmin 4, create a database named *movie_survey*.
+
+pic
+
+Within the *movie_survey* database, run the following code:
+[create_movie_survey_tables.sql](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/create_movie_survey_tables.sql)
+  
+This code is broken up into a few steps. 
 
 ---
 
