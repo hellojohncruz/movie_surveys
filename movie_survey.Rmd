@@ -94,13 +94,12 @@ library('tidyverse')
 Using this connection we will be able to keep our username and password from being embedded into our code and instead have RStudio pop up a dialog box to input the information. 
 
 ```{r DB-connection}
+
 cnxn <- dbConnect(RPostgres::Postgres(),
                      dbname = 'movie_survey',
                      port = 5432,
-                     user = 'postgres',
-                     password = 'elliebelly968')
-                     # user = rstudioapi::askForPassword("Database Username"),
-                     # password = rstudioapi::askForPassword("Database Password"))
+                     user = rstudioapi::askForPassword("Database Username"),
+                     password = rstudioapi::askForPassword("Database Password"))
 ```
 
 ## Query the Database
@@ -127,8 +126,21 @@ df <- dbFetch(query)
 Since we have gathered the data we needed from the database, we will close the connection to PostgreSQL.
 
 ```{r DB-disconect}
+dbClearResult(query)
 dbDisconnect(cnxn)
 ```
 
 ---
 
+# Analyzing the Results
+
+## Descriptive Statistics
+
+``` {r descriptive-stats}
+avg_rating <- df %>% filter(!is.na(rating)) %>% 
+  group_by(release_year, name) %>%
+  summarize(avg_rating = mean(rating), count = n(), .groups = 'drop') %>%
+  arrange(desc(avg_rating))
+
+knitr::kable(avg_rating)
+```
