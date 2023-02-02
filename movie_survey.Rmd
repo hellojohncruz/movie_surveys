@@ -1,0 +1,87 @@
+---
+title: "Sample on Movie Ratings"
+author: "John Cruz"
+date: "2023-02-02"
+output: pdf_document
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+I will be collecting movie ratings through an online survey on a scale of 1 to 5. 
+
+The overall steps of this project is to do the following:
+
+1. Collect survey data
+2. Create a database to store this information
+3. Able to query the data into R
+4. Analyze some descriptive measures.
+
+---
+
+# Collecting Survey Data
+
+The survey was conducted using a Google Forms and named *Spoiled Corn*. This survey will collect ratings of six recent popular movies on a scale of 1 to 5, 1 being the lowest. If a person did not watch this movie, it will be categorized with an option of N/A.
+
+[Online Survey](https://forms.gle/Jf8fvruorDacr69j9)
+
+# Building our Database
+
+---
+
+# Connecting to our Database
+
+## Required Libraries
+
+```{r libraries, warning=FALSE, message=FALSE}
+library('RPostgres')
+library('DBI')
+library('tidyverse')
+```
+
+## PostgreSQL Database
+
+Using this connection we will be able to keep our username and password from being embedded into our code and instead have RStudio pop up a dialog box to input the information. 
+
+```{r DB-connection}
+cnxn <- dbConnect(RPostgres::Postgres(),
+                     dbname = 'movie_survey',
+                     port = 5432,
+                     user = 'postgres',
+                     password = 'elliebelly968')
+                     # user = rstudioapi::askForPassword("Database Username"),
+                     # password = rstudioapi::askForPassword("Database Password"))
+```
+
+## Query the Database
+
+Here we are able to directly query our PostgreSQL database and pull the information from the tables we created earlier. *dbFectch()* will allow us to move the results of the query into a readable DataFrame.
+
+```{r DB-query}
+query <- dbSendQuery(cnxn, 
+                   "SELECT
+                    	r.datetimeid,
+                    	r.user_id,
+                    	f.name,
+                    	r.rating,
+                    	f.release_year
+                    FROM ratings r
+                    INNER JOIN films f
+                    	ON r.movie_id = f.movie_id ")
+
+df <- dbFetch(query)
+```
+
+## Close Connection
+
+Since we have gathered the data we needed from the database, we will close the connection to PostgreSQL.
+
+```{r DB-disconect}
+# Disconnect from database
+dbDisconnect(cnxn)
+```
+
