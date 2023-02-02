@@ -35,14 +35,45 @@ The survey was conducted using a Google Forms named *Spoiled Corn*. This survey 
 
 The database used was PostgreSQL for no particular reason but to learn how to use another database option outside of my previous ones such as SQL Server, duckDB and Google Cloud Storage.
 
-Using PostgreSQL within pgAdmin 4, create a database named *movie_survey*.
+1. Using PostgreSQL within pgAdmin 4, create a database named *movie_survey*.
 
-pic
+pic create_db
 
-Within the *movie_survey* database, run the following code:
+2. Within the *movie_survey* database, run the following code:
 [create_movie_survey_tables.sql](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/create_movie_survey_tables.sql)
+  - This SQL code is created based off the following (ER Diagram)
+  - I created a table named *surveys* to store the data in its original format. After this initial table is made, I used the following code allowing the CSV file to be imported to the *surveys* table.
   
-This code is broken up into a few steps. 
+```
+    copy surveys from 'CSV survey filepath' delimiter ',' HEADER csv;
+```
+
+  - To create the *films* table, I used the column names from the *surveys* table to name each row and also grab its release year.
+  
+```
+SELECT 
+	SPLIT_PART(column_name, '(', 1) AS movie_name,
+	SPLIT_PART(SPLIT_PART(column_name, '(', 2), ')', 1) AS release_year
+FROM information_schema.columns
+WHERE table_schema = 'public'
+	AND table_name   = 'surveys'
+```
+
+  - The *ratings* table was created on the same format as the *films* table, however, because I wanted to unpivot the columns of the *surveys* table, similar to using the *melt()* function in Pandas and I was having issues with R's version, I was able to use two functions, *LATERAL()* and *VALUES()*, to perform the same idea. 
+  
+```
+SELECT s."Timestamp", s.user_id, val.*
+FROM surveys s,
+LATERAL(
+	VALUES
+		(1, s."Avengers: Endgame (2019)"),
+		(2, s."The Lion King (2019)"),
+		(3, s."Joker (2019)"),
+		(4, s."Everything Everywhere All at Once (2022)"),
+		(5, s."The Matrix Resurrections (2021)"),
+		(6, s."King Richard (2021)")
+	) AS val (movie_id, full_rating)
+```
 
 ---
 
