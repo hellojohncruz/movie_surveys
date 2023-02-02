@@ -2,7 +2,8 @@
 title: "Movie Ratings Sample Data"
 author: "John Cruz"
 date: "2023-02-02"
-output: pdf_document
+output: 
+  pdf_document
 urlcolor: blue
 ---
 
@@ -35,13 +36,11 @@ The survey was conducted using a Google Forms named *Spoiled Corn*. This survey 
 
 The database used was PostgreSQL for no particular reason but to learn how to use another database option outside of my previous ones such as SQL Server, duckDB and Google Cloud Storage.
 
-1. Using PostgreSQL within pgAdmin 4, create a database named *movie_survey*.
-
-pic create_db
+1. Using PostgreSQL within pgAdmin 4, [create a database](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/create_db.png) named *movie_survey*.
 
 2. Within the *movie_survey* database, run the following code:
-[create_movie_survey_tables.sql](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/create_movie_survey_tables.sql)
-  - This SQL code is created based off the following (ER Diagram)
+[create_tables.sql](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/create_movie_survey_tables.sql)
+  - The SQL code is created based off this ER Diagram. 
   - I created a table named *surveys* to store the data in its original format. After this initial table is made, I used the following code allowing the CSV file to be imported to the *surveys* table.
   
 ```
