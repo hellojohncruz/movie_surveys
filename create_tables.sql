@@ -81,7 +81,7 @@ SELECT
 	user_id,
 	movie_id,
 	CASE 
-		WHEN txt_rating LIKE '[N/A]' THEN 0
+		WHEN txt_rating LIKE '[N/A]' THEN NULL
 		ELSE CAST(txt_rating AS integer) 
 	END AS rating	
 FROM(
