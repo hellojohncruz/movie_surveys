@@ -75,19 +75,7 @@ LATERAL(
 	) AS val (movie_id, full_rating)
 ```
 
-  - I tested the database to see if it works as intended.
-
-```
-SELECT
-	r.datetimeid,
-	r.user_id,
-	f.name,
-	r.rating,
-	f.release_year
-FROM ratings r
-INNER JOIN films f
-	ON r.movie_id = f.movie_id
-```
+  - I [queried](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/test_query.sql) the database to see if it works as intended.
 
 ---
 
@@ -139,7 +127,8 @@ df <- dbFetch(query)
 Since we have gathered the data we needed from the database, we will close the connection to PostgreSQL.
 
 ```{r DB-disconect}
-# Disconnect from database
 dbDisconnect(cnxn)
 ```
+
+---
 
