@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 I will be collecting movie ratings through an online survey on a scale of 1 to 5. 
 
-The overall steps of this project is the following:
+The steps through this project will be:
 
 1. Collect survey data
 2. Create a database to store this information
@@ -24,9 +24,20 @@ The overall steps of this project is the following:
 
 ---
 
+## Required Libraries
+
+```{r libraries, warning=FALSE, message=FALSE}
+library('RPostgres')
+library('DBI')
+library('tidyverse')
+library('ggrepel')
+```
+
+---
+
 # Collecting Survey Data
 
-The survey was conducted using a Google Forms named *Spoiled Corn*. This survey will collect ratings of six recent popular movies on a scale of 1 to 5, 1 being the lowest. If a person did not watch this movie, it will be categorized with an option of N/A. Once data has been collected, I exported the data via CSV, so that it can be imported into a PostgreSQL database. 
+The survey will be conducted using a Google Forms named *Spoiled Corn*. This survey will collect ratings of six recent popular movies on a scale of 1 to 5, 1 being the lowest. If a person did not watch this movie, it will be categorized with an option of N/A. Once data is collected, I will export the data via CSV, and import into a PostgreSQL database. 
 
 [Online Survey](https://forms.gle/Jf8fvruorDacr69j9)
 
@@ -34,14 +45,14 @@ The survey was conducted using a Google Forms named *Spoiled Corn*. This survey 
 
 # Building the Database
 
-The database used was PostgreSQL for no particular reason but to learn how to use another database option outside of my previous ones such as SQL Server, duckDB and Google Cloud Storage.
+The database used was PostgreSQL for no particular reason but to learn how to use another database option outside of my previous ones such as SQL Server and Google Cloud Storage.
 
 1. Using PostgreSQL within pgAdmin 4, [create a database](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/create_db.png) named *movie_survey*.
 
 2. Within the *movie_survey* database, run the following code:
 [create_tables.sql](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/create_tables.sql)
 
-  - The SQL code is created based off this [ER Diagram](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/er_diagram.png). 
+  - The SQL code is created was based off this [ER Diagram](https://raw.githubusercontent.com/hellojohncruz/movie_surveys/main/er_diagram.png). 
   - I created a table named *surveys* to store the data in its original format. After this initial table is made, I used the following code allowing the CSV file to be imported to the *surveys* table.
   
 ```
@@ -59,7 +70,7 @@ WHERE table_schema = 'public'
 	AND table_name   = 'surveys'
 ```
 
-  - The *ratings* table was created in the same format as the *films* table, however, because I wanted to unpivot the columns of the *surveys* table, similar to using the *melt()* function in Pandas and I was having issues with R's version, I was able to use two functions, *LATERAL()* and *VALUES()*, to perform the same idea. 
+  - The *ratings* table was created in the same format as the *films* table, however, because I wanted to unpivot the columns of the *surveys* table, similar to using the *melt()* function in Pandas  I was able to use two functions in PostgreSQL, *LATERAL()* and *VALUES()*, to perform the same idea. 
   
 ```
 SELECT s."Timestamp", s.user_id, val.*
@@ -79,19 +90,11 @@ LATERAL(
 
 ---
 
-# Connecting to our Database
-
-## Required Libraries
-
-```{r libraries, warning=FALSE, message=FALSE}
-library('RPostgres')
-library('DBI')
-library('tidyverse')
-```
+# Connecting to the Database
 
 ## PostgreSQL Database
 
-Using this connection we will be able to keep our username and password from being embedded into our code and instead have RStudio pop up a dialog box to input the information. 
+Using this connection, I will be able to keep the username and password from being embedded into the code and instead have RStudio pop up a dialog box to input said information. 
 
 ```{r DB-connection}
 
@@ -104,7 +107,7 @@ cnxn <- dbConnect(RPostgres::Postgres(),
 
 ## Query the Database
 
-Here we are able to directly query our PostgreSQL database and pull the information from the tables we created earlier. *dbFectch()* will allow us to move the results of the query into a readable DataFrame.
+Here I am able to directly query the PostgreSQL database and pull the information from the tables I created earlier. *dbFetch()* will allow me to move the results of the query into a readable DataFrame.
 
 ```{r DB-query}
 query <- dbSendQuery(cnxn, 
@@ -123,7 +126,7 @@ df <- dbFetch(query)
 
 ## Close Connection
 
-Since we have gathered the data we needed from the database, we will close the connection to PostgreSQL.
+Since I have gathered the data needed from the database, I will close the connection to PostgreSQL.
 
 ```{r DB-disconect}
 dbClearResult(query)
@@ -136,11 +139,40 @@ dbDisconnect(cnxn)
 
 ## Descriptive Statistics
 
+The total number of unique respondents in the survey was 53 people. 
+
+``` {r total-responses, include=FALSE}
+num_surveys = n_distinct(df$user_id)
+print(num_surveys)
+```
+
 ``` {r descriptive-stats}
+df$name <- trimws(df$name)
+
 avg_rating <- df %>% filter(!is.na(rating)) %>% 
   group_by(release_year, name) %>%
-  summarize(avg_rating = mean(rating), count = n(), .groups = 'drop') %>%
+  summarize(avg_rating = round(mean(rating), 2), count = n(), .groups = 'drop') %>%
+  select(release_year, name, avg_rating, count) %>%
+  mutate(pct_viewed = round(count / num_surveys, 2)) %>%
   arrange(desc(avg_rating))
 
 knitr::kable(avg_rating)
 ```
+
+We can see in the previous table the highest rated movie was *The Matrix Resurrections* released in 2021 with an average rating of **4.06**. However, only **60 percent** of the respondents watched this movie. In the graph below, we can see the 2019 release of *The Lion King* had an average viewer rating of **3.87** while **87 percent** of the respondents had watched the movie. 
+
+
+``` {r ratings-scatterplot}
+ggplot(data = avg_rating, aes(x = pct_viewed, y = avg_rating, label = name)) +
+  geom_point() +
+  geom_label_repel(box.padding = 0.35) +
+  theme_minimal() +
+  labs(x = 'Percentage of People who Watched the Movie', y = 'Average Rating\n(Max = 5)') +
+  scale_x_continuous(labels = scales::percent)
+```
+
+---
+
+# Future Insights
+
+With this data, I would like to continue to investigate additional factors into how people rated their movies. Are there particular genres that ties them together such as action, adventure, or drama? Did their box office sales help determine the rating that was given? Additionally, collecting more information about the users themselves in the survey would help. Does their race, income level, education, and hobbies influence their choices?
